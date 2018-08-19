@@ -10,5 +10,11 @@
   "mango": 10,
   "banana": 1,
   "angry": -5,
-  "kitten": 4
+  "kitten": 4,
+  "joyful": 5,
+  "upset": -4,
+  "dog": 4,
+  "sad": -3,
+  "mad": -5,
+  "today": 100
 }

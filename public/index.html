@@ -11,6 +11,7 @@
     <script  src="./sketch.js"></script>
   </head>
   <body>
+    <h1 style = "text-align: center;">Sentiment API/Analysis</h1>
     <p>
       word: <input type = "text" id = "word">
     </br>
@@ -18,7 +19,6 @@
     </br>
       <button id = "submit" onclick="submitWord()">Submit</button>
     </p>
-    <p id="demo"></p>
     <script>
         function submitWord() {
           var word = document.getElementById("word").value;
@@ -26,9 +26,31 @@
           loadJSON('add/'+ word + '/' + score, finished);
           function finished(data){
             console.log(data);
-            drawData();
+            
           }
         }
   </script>
+  </br>
+  <p>
+    <textarea id = 'paragraph' cols = 40 rows = 5></textarea>
+    <button id = "analyze" onclick = "submitParagraph()">Analyze!</button></p>
+    <script>
+        function submitParagraph() {
+          var txt = document.getElementById("paragraph").value;
+          var data = {
+            text : txt
+          };
+          httpPost('/analyze', data, 'json', dataPosted, postErr);
+          function dataPosted(result){
+            console.log(result);
+
+          }
+          function postErr(err){
+            console.log(err);
+          }
+         
+        }
+  </script>
+    
   </body>
 </html>

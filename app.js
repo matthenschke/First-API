@@ -1,17 +1,28 @@
 //filereader setup
 var fs = require('fs');
-var data = fs.readFileSync('words.json');
-var words = JSON.parse(data);
+var data = fs.readFileSync('additional.json');
+var afinnData = fs.readFileSync('afinn111.json');
+var additional = JSON.parse(data);
+var afinnWords = JSON.parse(afinnData);
+
+
 
 
 //express and express packages setup
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser');
 
 
 //display files in the public directory
 app.use(express.static('public'));
 
+//use body-parser
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
 
 //server setup
 var server = app.listen(8000, function(){
@@ -36,9 +47,9 @@ function addWord(req, res){
     }
     else {
     //adding entry to API
-    words[word] = score;
-    var data = JSON.stringify(words, null, 2);
-    fs.writeFile('words.json', data, finished);
+    additional[word] = score;
+    var data = JSON.stringify(additional, null, 2);
+    fs.writeFile('additional.json', data, finished);
     function finished(err){
         console.log('Finished writing to file');
         reply = {
@@ -54,6 +65,41 @@ function addWord(req, res){
 
      
 }
+//route to handle post request
+app.post('/analyze', analyzeThis);
+function analyzeThis(req, res){
+    var text = req.body.text;
+    var words = text.split(/\W/);
+    var totalScore = 0;
+    var scoreWords = []
+    for (var i = 0; i < words.length; i++){
+        var word = words[i].toLowerCase();
+        var wordScore = 0;
+        var found = false;
+        if (additional.hasOwnProperty(word)){
+            wordScore = Number(additional[word]);
+            found = true;
+            
+        }
+        else if (afinnWords.hasOwnProperty(word)){
+            wordScore = Number(afinnWords[word]);
+            found = true;
+        }
+        if (found){
+            scoreWords.push({word : word, score: wordScore});    
+        }
+            totalScore += wordScore;
+              
+    }
+    var comp = totalScore / words.length;
+    var reply = {
+        score : totalScore,
+        comparative: comp,
+        words: scoreWords
+    };
+    res.send(reply);
+    
+}
 
 //view specific queried entry
 app.get('/search/:word/', searchWord);
@@ -62,11 +108,11 @@ function searchWord(req, res){
     var data = req.params;
     var word = data.word;
     var reply;
-    if (words[word]){
+    if (additional[word]){
         reply = {
             status : "found",
             word: word,
-            score : words[word]
+            score : additional[word]
         };
     }
     else{
@@ -86,6 +132,10 @@ function searchWord(req, res){
 app.get('/all', sendAll);
 
 function sendAll(req, res){
-    res.send(words);
+    var data = {
+        additional : additional,
+        afinn : afinnWords
+    };
+    res.send(data);
 }
 
